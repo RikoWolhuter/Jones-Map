@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "330522955248",
+    "project_id": "jonesmap-9e180",
+    "storage_bucket": "jonesmap-9e180.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:330522955248:android:35fc5ab3db64398d786135",
+        "android_client_info": {
+          "package_name": "com.example.jonesmap"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "330522955248-irroa9a19pkq0707ddk8dfsrssu1m5km.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCxX-eD_LpYf-C2ucrjHoTZGaAzEsZxIL4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "330522955248-irroa9a19pkq0707ddk8dfsrssu1m5km.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
