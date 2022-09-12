@@ -8,17 +8,34 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.app.Dialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class ProfileActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
+    private Button logout;
     private Toolbar toolbar;
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle toggleOnOff;
@@ -26,11 +43,25 @@ public class ProfileActivity extends AppCompatActivity implements NavigationView
 
     private static final String TAG = "SettingsActivity";
     private static final int ERROR_DIALOG_REQUEST = 9001;
+    private DatabaseReference reference;
+    private String userID;
+
+    Registration.User userProfile;
+
+    private String fullname;
+    private String gmail;
+    private String password;
+
+    private FirebaseAuth mAuth;
+    private FirebaseUser user;
+    private FirebaseDatabase database = FirebaseDatabase.getInstance();
+    private DatabaseReference registerUsers = FirebaseDatabase.getInstance().getReference("Users");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+        mAuth = FirebaseAuth.getInstance();
 
         toolbar = findViewById(R.id.nav_toolbar);
         setSupportActionBar(toolbar);
@@ -45,6 +76,110 @@ public class ProfileActivity extends AppCompatActivity implements NavigationView
         navigationView = findViewById(R.id.nav_view);
         navigationView.bringToFront();
         navigationView.setNavigationItemSelectedListener(this);
+
+        logout = (Button) findViewById(R.id.LogOut);
+
+        logout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FirebaseAuth.getInstance().signOut();
+                startActivity(new Intent(ProfileActivity.this, Login.class));
+            }
+        });
+
+        user = FirebaseAuth.getInstance().getCurrentUser();
+
+        userID = user.getUid();
+
+        final TextView NameTextView = (TextView) findViewById(R.id.Name);
+        final TextView PassTextView = (TextView) findViewById(R.id.Password);
+        final TextView EmailTextView = (TextView) findViewById(R.id.Email);
+
+        //reference.child(userID).
+
+        registerUsers.child(userID).child("gmail_").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                if (dataSnapshot.exists()) {
+                    EmailTextView.setText(dataSnapshot.getValue(String.class));
+                }
+                else{
+                    EmailTextView.setText("Not found");
+                }
+                //PassTextView.setText(password);
+                //EmailTextView.setText(gmail);
+
+
+
+                //Toast.makeText(Profile.this, "DataSnapShotError!", Toast.LENGTH_LONG).show();
+
+
+
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(ProfileActivity.this, "Something wrong happened!", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        registerUsers.child(userID).child("password").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                if (dataSnapshot.exists()) {
+                    PassTextView.setText(dataSnapshot.getValue(String.class));
+                }
+                else{
+                    PassTextView.setText("Not found");
+                }
+                //PassTextView.setText(password);
+                //EmailTextView.setText(gmail);
+
+
+
+                //Toast.makeText(Profile.this, "DataSnapShotError!", Toast.LENGTH_LONG).show();
+
+
+
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(ProfileActivity.this, "Something wrong happened!", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        registerUsers.child(userID).child("username").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                if (dataSnapshot.exists()) {
+                    NameTextView.setText(dataSnapshot.getValue(String.class));
+                }
+                else{
+                    NameTextView.setText("Not found");
+                }
+                //PassTextView.setText(password);
+                //EmailTextView.setText(gmail);
+
+
+
+                //Toast.makeText(Profile.this, "DataSnapShotError!", Toast.LENGTH_LONG).show();
+
+
+
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(ProfileActivity.this, "Something wrong happened!", Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     @Override
