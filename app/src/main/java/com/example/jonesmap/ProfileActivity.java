@@ -24,13 +24,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public class ProfileActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -197,7 +192,9 @@ public class ProfileActivity extends AppCompatActivity implements NavigationView
             case R.id.nav_settings:
                 IntentHelper.openIntent(this, SettingsActivity.class);
                 break;
-
+            case R.id.nav_profile:
+                IntentHelper.openIntent(this, ProfileActivity.class);
+                break;
         }
         drawerLayout.closeDrawer(GravityCompat.START);
         //returning true marks the item as selected

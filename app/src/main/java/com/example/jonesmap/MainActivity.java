@@ -38,6 +38,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.nav_settings:
                 IntentHelper.openIntent(this, SettingsActivity.class);
                 break;
+            case R.id.nav_profile:
+                IntentHelper.openIntent(this, ProfileActivity.class);
+                break;
 
         }
         drawerLayout.closeDrawer(GravityCompat.START);
@@ -48,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private ImageView img_Sb2;
     private ImageView img_Sb3;
+    private ImageView img_Sb4;
 
 
     private Toolbar toolbar;
@@ -81,10 +85,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         img_Sb2 = findViewById(R.id.nav_Landmarks);
         img_Sb3 = findViewById(R.id.nav_Settings);
+        img_Sb4 = findViewById(R.id.nav_Profile);
 
 
         img_Sb2.setOnClickListener(this);
         img_Sb3.setOnClickListener(this);
+        img_Sb4.setOnClickListener(this);
 
         if(isServicesOK()){
             init();
@@ -100,6 +106,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.nav_Settings:
                 IntentHelper.openIntent(this, SettingsActivity.class);
+                break;
+            case R.id.nav_Profile:
+                IntentHelper.openIntent(this, ProfileActivity.class);
                 break;
 
         }

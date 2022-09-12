@@ -69,6 +69,13 @@
 
                     app:srcCompat="@drawable/istockphoto_1256530089_170667a" />
 
+                <ImageView
+                    android:id="@+id/nav_Profile"
+                    android:layout_width="match_parent"
+                    android:layout_height="275dp"
+
+                    app:srcCompat="@drawable/using_your_facebook_personal_profile_to_boost_your_facebook_page" />
+
             </LinearLayout>
         </ScrollView>
 

@@ -45,6 +45,9 @@ public class SettingsActivity extends AppCompatActivity implements NavigationVie
             case R.id.nav_settings:
                 IntentHelper.openIntent(this, SettingsActivity.class);
                 break;
+            case R.id.nav_profile:
+                IntentHelper.openIntent(this, ProfileActivity.class);
+                break;
 
         }
         drawerLayout.closeDrawer(GravityCompat.START);

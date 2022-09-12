@@ -62,11 +62,11 @@
                     android:textStyle="bold" />
 
 
-
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/Name"
                     android:layout_width="332dp"
                     android:layout_height="41dp"
+                    android:editable="false"
                     android:hint="Enter name here"
                     tools:ignore="TouchTargetSizeCheck" />
 
@@ -82,11 +82,11 @@
                     android:textStyle="bold" />
 
 
-
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/Password"
                     android:layout_width="332dp"
                     android:layout_height="41dp"
+                    android:editable="false"
                     android:hint="Enter password"
                     tools:ignore="TouchTargetSizeCheck" />
 
@@ -102,11 +102,11 @@
                     android:textStyle="bold" />
 
 
-
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/Email"
                     android:layout_width="332dp"
                     android:layout_height="41dp"
+                    android:editable="false"
                     android:hint="Enter your email"
                     tools:ignore="TouchTargetSizeCheck" />
 
