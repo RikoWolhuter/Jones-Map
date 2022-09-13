@@ -14,6 +14,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -27,10 +28,16 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.jonesmap.models.PlaceInfo;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.AutocompletePrediction;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -109,6 +116,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private PlaceAutocompleteAdapter mPlaceAutocompleteAdapter;
     private GoogleApiClient mGoogleApiClient;
+    private PlaceInfo mPlace;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -130,6 +138,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 .addApi(Places.PLACE_DETECTION_API)
                 .enableAutoManage(this, this)
                 .build();
+
+        mSearchText.setOnItemClickListener(mAutocompleteClickListener);
 
         mPlaceAutocompleteAdapter = new PlaceAutocompleteAdapter(this, mGoogleApiClient,
                 LAT_LNG_BOUNDS, null);
@@ -291,6 +301,53 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private void hideSoftKeyboard(){
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
+/*
+--------------------------------------------------- google places API autocomplete suggestions-----------------------
+ */
+private AdapterView.OnItemClickListener mAutocompleteClickListener = new AdapterView.OnItemClickListener() {
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        hideSoftKeyboard();
+        final AutocompletePrediction item = mPlaceAutocompleteAdapter.getItem(i);
+        final String placeId = item.getPlaceId();
 
+        PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi.getPlaceById(mGoogleApiClient,placeId);
+        placeResult.setResultCallback(mUpdatePlaceDetailsCallback);
+    }
+};
+
+private ResultCallback<PlaceBuffer> mUpdatePlaceDetailsCallback = new ResultCallback<PlaceBuffer>(){
+    @Override
+    public void onResult(@NonNull PlaceBuffer places){
+        if(!places.getStatus().isSuccess()){
+            Log.d(TAG, "onResult: Place query did not complete successfully." + places.getStatus().toString());
+            places.release();
+            return;
+        }
+        final Place place = places.get(0);
+        try{
+
+
+
+        mPlace = new PlaceInfo();
+        mPlace.setName(place.getName().toString());
+        mPlace.setAddress(place.getAddress().toString());
+        //mPlace.setAttributions(place.getAttributions().toString());
+        mPlace.setId(place.getId());
+        mPlace.setLatlng(place.getLatLng());
+        mPlace.setRating(place.getRating());
+        mPlace.setPhoneNumber(place.getPhoneNumber().toString());
+        mPlace.setWebsiteUri(place.getWebsiteUri());
+
+            Log.d(TAG, "onResult: place:" + mPlace.toString());
+        }catch(NullPointerException e){
+            Log.e(TAG, "onResult: NullPointerException: " + e.getMessage());
+        }
+        moveCamera(new LatLng(place.getViewport().getCenter().latitude, place.getViewport().getCenter().longitude) , DEFAULT_ZOOM, mPlace.getName());
+
+        places.release();
+    }
+
+};
 
 }
