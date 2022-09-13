@@ -252,6 +252,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
 
         mMap.clear();
+
+        mMap.setInfoWindowAdapter(new CustomInfoWindowAdapter(MapActivity.this));
         if(placeInfo != null){
             try{
                 String snippet = "Address: " + placeInfo.getAddress() + "\n" +
