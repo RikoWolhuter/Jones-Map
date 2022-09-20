@@ -15,7 +15,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.JonesMap">
         <activity
-            android:name=".AddLandMarks"
+            android:name=".AddLandMarksActivity"
             android:exported="false" />
         <activity
             android:name=".ProfileActivity"
