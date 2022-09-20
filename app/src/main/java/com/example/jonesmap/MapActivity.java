@@ -1,8 +1,10 @@
 package com.example.jonesmap;
 import android.*;
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Point;
@@ -67,6 +69,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.common.base.MoreObjects;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
@@ -86,7 +89,10 @@ import java.util.List;
  */
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback,
-        GoogleApiClient.OnConnectionFailedListener{
+        GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnInfoWindowClickListener{
+
+
+
 
 
 
@@ -136,6 +142,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private static final LatLngBounds LAT_LNG_BOUNDS = new LatLngBounds(
             new LatLng(-40, -168), new LatLng(71, 136));
     private static final int PLACE_PICKER_REQUEST = 1;
+    private static String MyPosLat = "";
+    private static String MyPosLong = "";
+    private static double MyPosLatNum = 0;
+    private static double MyPosLongNum = 0;
 
 
 
@@ -155,6 +165,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private PlaceInfo mPlace;
     private Marker mMarker;
     private GeoApiContext mGeoApiContext = null;
+    private GoogleMap mGoogleMap;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -166,6 +177,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         mPlacePicker = (ImageView) findViewById(R.id.place_picker);
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         getLocationPermission();
+
+
 
     }
 
@@ -246,6 +259,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         hideSoftKeyboard();
     }
 
+
+
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PLACE_PICKER_REQUEST) {
@@ -303,6 +318,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                                     DEFAULT_ZOOM,
                                     "My Location");
 
+
+
+
                         }else{
                             Log.d(TAG, "onComplete: current location is null");
                             Toast.makeText(MapActivity.this, "unable to get current location", Toast.LENGTH_SHORT).show();
@@ -327,7 +345,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 String snippet = "Address: " + placeInfo.getAddress() + "\n" +
                         "Phone Number: " + placeInfo.getPhoneNumber() + "\n" +
                         "Website: " + placeInfo.getWebsiteUri() + "\n" +
-                        "Price Rating: " + placeInfo.getRating() + "\n";
+                        "Price Rating: " + placeInfo.getRating() + "\n"
+                        + "\n"+
+                        "Determine route to location?" +  "\n";
 
                 MarkerOptions options = new MarkerOptions()
                         .position(latLng).title(placeInfo.getName()).snippet(snippet);
@@ -338,6 +358,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 Log.e(TAG, "moveCamera: NullPointerException: " + e.getMessage());
             }
         }else{
+
+
             mMap.addMarker(new MarkerOptions().position(latLng));
         }
 
@@ -345,6 +367,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     private void moveCamera(LatLng latLng, float zoom, String title){
+        MyPosLat = String.valueOf(latLng.latitude);
+        MyPosLong = String.valueOf(latLng.longitude);
+        MyPosLatNum = latLng.latitude;
+        MyPosLongNum = latLng.longitude;
         Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude );
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
 
@@ -356,6 +382,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
 
         hideSoftKeyboard();
+
     }
 
 
@@ -366,11 +393,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         mapFragment.getMapAsync(MapActivity.this);
 
-        if(mGeoApiContext == null){
-            mGeoApiContext = new GeoApiContext.Builder()
-                    .apiKey(getString(R.string.google_api_key))
-                    .build();
-        }
+
     }
 
     private void getLocationPermission(){
@@ -425,14 +448,23 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
 
-    private void direction(){
+
+    private void direction(Marker marker){
+
+        com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(
+                marker.getPosition().latitude,
+                marker.getPosition().longitude
+        );
+
         RequestQueue requestQueue = Volley.newRequestQueue(this);
         String url = Uri.parse("https://maps.googleapis.com/maps/api/directions/json")
                 .buildUpon()
-                .appendQueryParameter("destination", "-6.9218571, 107.6048254")
-                .appendQueryParameter("origin", "-6.9249233, 107.6345122")
+                .appendQueryParameter("destination", destination.toString())
+                .appendQueryParameter("origin", (MyPosLat+", "+MyPosLong))
                 .appendQueryParameter("mode", "driving")
                 .appendQueryParameter("key", getString(R.string.google_api_key))
+                .appendQueryParameter("duration","minutes")
+                .appendQueryParameter("distance","kilometers")
                 .toString();
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
             @Override
@@ -469,13 +501,17 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                             polylineOptions.geodesic(true);
                         }
                         mMap.addPolyline(polylineOptions);
+
+
                         /*
                         mMap.addMarker(new MarkerOptions().position(new LatLng(-6.9249233, 107.6345122)).title("Marker 1"));
                         mMap.addMarker(new MarkerOptions().position(new LatLng(-6.9218571, 107.6048254)).title("Marker 1"));
 */
+
                         LatLngBounds bounds = new LatLngBounds.Builder()
-                                .include(new LatLng(-6.9249233, 107.6345122))
-                                .include(new LatLng(-6.9218571, 107.6048254)).build();
+                                .include(new LatLng(MyPosLatNum, MyPosLongNum))
+                                .include(new LatLng( marker.getPosition().latitude,
+                                        marker.getPosition().longitude)).build();
                         Point point = new Point();
                         getWindowManager().getDefaultDisplay().getSize(point);
                         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, point.x, 150, 30));
@@ -526,6 +562,34 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
         return poly;
     }
+
+
+    @Override
+    public void onInfoWindowClick(final Marker marker) {
+
+
+            final AlertDialog.Builder builder = new AlertDialog.Builder(MapActivity.this);
+            builder.setMessage("Determine route to location?")
+                    .setCancelable(true)
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                            direction(marker);
+                            dialog.dismiss();
+                        }
+                    })
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                            dialog.cancel();
+                        }
+                    });
+            final AlertDialog alert = builder.create();
+            alert.show();
+        }
+
+
+
+
+
 /*
 --------------------------------------------------- google places API autocomplete suggestions-----------------------
  */
