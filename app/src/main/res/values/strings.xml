@@ -3,4 +3,22 @@
     <string name="google_maps_API_key">AIzaSyAgGmEl8Idgkx4R8rR2deAhbbN93h8nnGs</string>
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
     <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
+    <string-array name="Measurements">
+        <item>METRIC</item>
+        <item>IMPERIAL</item>
+    </string-array>
+
+    <string-array name="Landmark">
+        <item>RESTAURANT</item>
+        <item>NATURE RESERVE</item>
+        <item>BEACH</item>
+        <item>SCHOOL</item>
+        <item>HOSPITAL</item>
+        <item>SHOPPING MALL</item>
+        <item>SHOPPING STORE</item>
+        <item>ACCOMMODATION</item>
+        <item>TRAIN STATION</item>
+        <item>MUSEUM</item>
+        <item>PLACE OF RELIGION</item>
+    </string-array>
 </resources>
