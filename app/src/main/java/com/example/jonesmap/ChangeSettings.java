@@ -40,6 +40,25 @@ public class ChangeSettings extends AppCompatActivity implements NavigationView.
                 android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
         spinnerMeasurements.setAdapter(adapter);
+        spinnerMeasurements.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 0:
+                        // Metric
+                        break;
+                    case 1:
+                        // Imperial
+                        break;
+
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
     //Landmark dropdown
         Spinner spinnerLandmark = findViewById(R.id.preference_landmark);
         ArrayAdapter<CharSequence> adapter2 = ArrayAdapter.createFromResource(this, R.array.Landmark,
@@ -47,7 +66,58 @@ public class ChangeSettings extends AppCompatActivity implements NavigationView.
 
         adapter2.setDropDownViewResource(android.R.layout.simple_spinner_item);
         spinnerLandmark.setAdapter(adapter2);
+        spinnerLandmark.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 0:
+                        // Restaurant
+                        break;
+                    case 1:
+                        // Nature Reserve
+                        break;
+                    case 2:
+                        // Beach
+                        break;
+                    case 3:
+                        // School
+                        break;
+                    case 4:
+                        // Hospital
+                        break;
+                    case 5:
+                        // Shopping Mall
+                        break;
+                    case 6:
+                        // Shopping Store
+                        break;
+                    case 7:
+                        // Accommodation
+                        break;
+                    case 8:
+                        // Train Station
+                        break;
+                    case 9:
+                        // Museum
+                        break;
+                    case 10:
+                        // Place of religion
+                        break;
+
+
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+
+
     }
+
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item)

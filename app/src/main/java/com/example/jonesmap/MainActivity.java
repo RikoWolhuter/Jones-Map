@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 IntentHelper.openIntent(this, LandMarksActivity.class);
                 break;
             case R.id.nav_settings:
-                IntentHelper.openIntent(this, SettingsActivity.class);
+                IntentHelper.openIntent(this, ChangeSettings.class);
                 break;
             case R.id.nav_profile:
                 IntentHelper.openIntent(this, ProfileActivity.class);
@@ -105,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 IntentHelper.openIntent(this, LandMarksActivity.class);
                 break;
             case R.id.nav_Settings:
-                IntentHelper.openIntent(this, SettingsActivity.class);
+                IntentHelper.openIntent(this, ChangeSettings.class);
                 break;
             case R.id.nav_Profile:
                 IntentHelper.openIntent(this, ProfileActivity.class);

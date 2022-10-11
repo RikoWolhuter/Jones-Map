@@ -147,11 +147,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private static double MyPosLatNum = 0;
     private static double MyPosLongNum = 0;
 
-
-
-
-
-
     //widgets
     private AutoCompleteTextView mSearchText;
     private ImageView mGps, mInfo, mPlacePicker;

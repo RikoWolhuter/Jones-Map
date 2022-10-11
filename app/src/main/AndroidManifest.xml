@@ -43,11 +43,11 @@
             android:name=".Registration"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".ChangeSettings"
             android:exported="false" />
         <activity android:name=".MapActivity" />
         <activity
-            android:name=".ChangeSettings"
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
