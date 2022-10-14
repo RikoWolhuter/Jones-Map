@@ -7,6 +7,7 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.app.Dialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -18,7 +19,17 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ChangeSettings extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private Toolbar toolbar;
@@ -28,11 +39,14 @@ public class ChangeSettings extends AppCompatActivity implements NavigationView.
 
     private static final String TAG = "landMarksActivity";
     private static final int ERROR_DIALOG_REQUEST = 9001;
-
+    List<String> placeTypeList;
+    DatabaseReference reference;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_change_settings);
+        placeTypeList = new ArrayList<>();
+        reference = FirebaseDatabase.getInstance().getReference().child("Places");
 
         //Measurements drop down
         Spinner spinnerMeasurements = findViewById(R.id.preference_measurement);
@@ -67,54 +81,67 @@ public class ChangeSettings extends AppCompatActivity implements NavigationView.
         adapter2.setDropDownViewResource(android.R.layout.simple_spinner_item);
         spinnerLandmark.setAdapter(adapter2);
         spinnerLandmark.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
                 switch (position) {
                     case 0:
                         // Restaurant
+                        uploadPlaces("restaurant");
+
                         break;
                     case 1:
                         // Nature Reserve
+                        uploadPlaces("nature_reserve");
                         break;
                     case 2:
                         // Beach
+                        uploadPlaces("beach");
                         break;
                     case 3:
                         // School
+                        uploadPlaces("school");
                         break;
                     case 4:
                         // Hospital
+                        uploadPlaces("hospital");
                         break;
                     case 5:
                         // Shopping Mall
+                        uploadPlaces("shopping_mall");
                         break;
                     case 6:
                         // Shopping Store
+                        uploadPlaces("shopping_store");
                         break;
                     case 7:
                         // Accommodation
+                        uploadPlaces("accommodation");
                         break;
                     case 8:
                         // Train Station
+                        uploadPlaces("train_station");
                         break;
                     case 9:
                         // Museum
+                        uploadPlaces("museum");
                         break;
                     case 10:
                         // Place of religion
+                        uploadPlaces("place_of_religion");
                         break;
 
 
                 }
             }
 
+
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
 
             }
         });
-
-
 
     }
 
@@ -172,5 +199,29 @@ public class ChangeSettings extends AppCompatActivity implements NavigationView.
             Toast.makeText(this, "You can't make map requests", Toast.LENGTH_SHORT).show();
         }
         return false;
+    }
+
+    public String uploadPlaces(String data)
+    {
+        placeTypeList.add(data);
+
+
+        reference.setValue(placeTypeList)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful())
+                        {
+                            Toast.makeText(getApplicationContext(),"Place added to DB successfully", Toast.LENGTH_LONG).show();
+                        }
+                        else
+                        {
+                            Toast.makeText(getApplicationContext(),"Failed add place to db", Toast.LENGTH_LONG).show();
+
+                        }
+                    }
+                });
+
+        return data;
     }
 }

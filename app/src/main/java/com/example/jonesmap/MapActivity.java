@@ -1,4 +1,5 @@
 package com.example.jonesmap;
+
 import android.*;
 import android.Manifest;
 import android.app.AlertDialog;
@@ -12,6 +13,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 
 import com.android.volley.DefaultRetryPolicy;
@@ -68,32 +70,40 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.api.Http;
 import com.google.common.base.MoreObjects;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
 import com.google.maps.model.DirectionsResult;
 
 import org.chromium.base.Callback;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
  * Created by User on 10/2/2017.
  */
 
-public class MapActivity extends AppCompatActivity implements OnMapReadyCallback,
-        GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnInfoWindowClickListener{
-
-
-
-
+public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity implements OnMapReadyCallback,
+        GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnInfoWindowClickListener {
 
 
     @Override
@@ -159,8 +169,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private GoogleApiClient mGoogleApiClient;
     private PlaceInfo mPlace;
     private Marker mMarker;
+    SupportMapFragment supportMapFragment;
     private GeoApiContext mGeoApiContext = null;
     private GoogleMap mGoogleMap;
+    private DatabaseReference reference;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -168,11 +181,135 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_map);
         mSearchText = (AutoCompleteTextView) findViewById(R.id.input_search);
         mGps = (ImageView) findViewById(R.id.ic_gps);
-        mInfo = (ImageView) findViewById( R.id.place_info);
+        mInfo = (ImageView) findViewById(R.id.place_info);
         mPlacePicker = (ImageView) findViewById(R.id.place_picker);
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         getLocationPermission();
+//Places still to be changed to Database changes
 
+//Places setting
+        //getting from change settings the info
+       // String extra = getIntent().getStringExtra("extra");
+        //String[] placeTypeList = {"restaurant", "nature_reserve", "beach", "school", "hospital",
+        //        "shopping mall", "shopping_store", "accommodation", "train_station", "museum", "place_of_religion"};
+
+        if (ActivityCompat.checkSelfPermission(MapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED)
+        {
+            getCurrentLocation();
+        }else
+        {
+            ActivityCompat.requestPermissions(MapActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 44);
+        }
+//this next code needs to be inside a thing that'll link back to MapActivity as it initilizes the search
+        //FindPlace
+
+        //initialize url
+        String url ="https://maps.googleapis.com/maps/api/place/nearbysearcg/json"+//url
+                "?location=" +MyPosLatNum +"," +MyPosLongNum +//location latitude and longitude
+                "&radius=5000" +//nearby radius
+                "&types= " +findPlace() +//place type
+                "&sensor =true" +//sensor
+//string value for google_map_key still needed
+                "key=" + getResources().getString(R.string.google_map_key);//google map key
+
+        new PlaceTask().execute(url);
+        // Intent intent = new Intent(ChangeSettings.this, MapActivity.class);
+        // intent.putExtra("extra", position);
+        //startActivity(intent);
+
+
+    }
+    private String findPlace()
+    {
+
+ //THis path might be a little off
+
+        reference = FirebaseDatabase.getInstance().getReference("Places");
+//this might be wrong I think It gets the [0] number not the value
+        String place = String.valueOf(FirebaseDatabase.getInstance().getReference("Places"));
+        reference.child(place).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if(task.isSuccessful())
+                {
+                    Toast.makeText(getApplicationContext(),"Place able to read successfully"+ place, Toast.LENGTH_LONG).show();
+
+                }
+                else
+                {
+                    Toast.makeText(getApplicationContext(),"Failed to read place", Toast.LENGTH_LONG).show();
+
+                }
+            }
+        });
+        return place;
+
+
+    }
+
+    private String downloadUrl(String string) throws IOException{
+        //Initialize url
+        URL url= new URL(string);
+        //Initialize connection
+        HttpURLConnection connection =(HttpURLConnection) url.openConnection();
+        //Connect connection
+        connection.connect();
+        //Initialize inputstream
+        InputStream stream= connection.getInputStream();
+        //Initialize buffer reader
+        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+        //Initialize string builder
+        StringBuilder builder = new StringBuilder();
+        //Initialize string variable
+
+        String line = "";
+        //Use while loop
+        while ((line = reader.readLine()) != null) {
+            //append line
+            builder.append(line);
+        }
+        //get append data
+        String data = builder.toString();
+
+        //Close reader
+        reader.close();
+        //return data
+        return data;
+    }
+
+    //to show nearby of places
+    private void getCurrentLocation() {
+        //Initialize task Location
+        if (ActivityCompat.checkSelfPermission(MapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) ;
+        {
+            Task<Location> task = mFusedLocationProviderClient.getLastLocation();
+
+            task.addOnSuccessListener(new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    if(location!= null){
+                        //get current latitude
+                        MyPosLatNum = location.getLatitude();
+                        MyPosLongNum = location.getLongitude();
+
+                        //Sync map
+                        supportMapFragment.getMapAsync(new OnMapReadyCallback() {
+                            @Override
+                            public void onMapReady(@NonNull GoogleMap googleMap) {
+                                //when map is ready
+                                mGoogleMap =googleMap;
+                                //Zoom current location on map
+                                mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                                        new LatLng(MyPosLatNum,MyPosLongNum),10
+                                ));
+                            }
+                        });
+                    }
+                }
+            });
+        }
 
 
     }
@@ -422,7 +559,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         switch (requestCode) {
             case LOCATION_PERMISSION_REQUEST_CODE: {
-                if (grantResults.length > 0) {
+                if (grantResults.length > 0||requestCode==44) {
                     for (int i = 0; i < grantResults.length; i++) {
                         if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                             mLocationPermissionsGranted = false;
@@ -434,6 +571,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     mLocationPermissionsGranted = true;
                     //initialize our map
                     initMap();
+                    getCurrentLocation();
                 }
             }
         }
@@ -634,4 +772,77 @@ private ResultCallback<PlaceBuffer> mUpdatePlaceDetailsCallback = new ResultCall
 
 };
 
-}
+    private class PlaceTask extends AsyncTask<String,Integer,String>
+    {
+
+        @Override
+        protected String doInBackground (String...strings) {
+                String data= null;
+                try{
+                    //Initialize data
+                    data =downloadUrl(strings[0]);
+                }catch(IOException e){
+                    e.printStackTrace();
+                }
+
+                return data;
+            }
+
+
+
+
+        @Override
+        protected void onPostExecute(String s) {
+                new ParserTask().execute(s);
+
+        }
+
+        private class ParserTask extends AsyncTask<String, Integer, List<HashMap<String,String>>> {
+            @Override
+            protected List<HashMap<String,String>> doInBackground(String...strings){
+
+                    //Create json parser class
+                    JsonParser jsonParser = new JsonParser();
+                    //Initialize hash map list
+                    List<HashMap<String, String>> mapList = null;
+                    JSONObject object = null;
+                    try{
+                        //IInitialise json object
+                        object =new JSONObject(strings[0]);
+                        //Parse json object
+                        mapList = jsonParser.parseResult(object);
+                    }catch(JSONException e){
+                        e.printStackTrace();
+                    }
+                    return mapList;
+                }
+
+            @Override
+            protected void onPostExecute(List<HashMap<String, String>> hashMaps) {
+                    //clear map
+                mGoogleMap.clear();
+                    for(int i=0; i<hashMaps.size(); i++){
+                        //Initialize hashmap
+                        HashMap<String, String> hashMapList =  hashMaps.get(i);
+                        //get latitude
+                        double lat = Double.parseDouble(hashMapList.get("lat"));
+                        double lng = Double.parseDouble(hashMapList.get("lng"));
+                        //getname
+                        String name = hashMapList.get("name");
+                        //concat latitude and longitude
+                        LatLng latLng = new LatLng(lat, lng);
+                        //intialise marker options
+                        MarkerOptions options = new MarkerOptions();
+                        //set position
+                        options.position(latLng);
+
+                        //set title
+                        options.title(name);
+                        //add marker on map
+                        mGoogleMap.addMarker(options);
+                    }
+                }
+            }
+        }
+    }
+
