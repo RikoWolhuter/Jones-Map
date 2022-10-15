@@ -74,9 +74,13 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.api.Http;
 import com.google.common.base.MoreObjects;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
@@ -156,6 +160,8 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
     private static String MyPosLong = "";
     private static double MyPosLatNum = 0;
     private static double MyPosLongNum = 0;
+    String place;
+    String measurement;
 
     //widgets
     private AutoCompleteTextView mSearchText;
@@ -175,6 +181,7 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
     private DatabaseReference reference;
 
 
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -185,50 +192,143 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
         mPlacePicker = (ImageView) findViewById(R.id.place_picker);
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         getLocationPermission();
+
 //Places still to be changed to Database changes
 
 //Places setting
         //getting from change settings the info
-       // String extra = getIntent().getStringExtra("extra");
+        
         //String[] placeTypeList = {"restaurant", "nature_reserve", "beach", "school", "hospital",
         //        "shopping mall", "shopping_store", "accommodation", "train_station", "museum", "place_of_religion"};
 
         if (ActivityCompat.checkSelfPermission(MapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED)
-        {
+                == PackageManager.PERMISSION_GRANTED) {
             getCurrentLocation();
-        }else
-        {
-            ActivityCompat.requestPermissions(MapActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 44);
+        } else {
+            ActivityCompat.requestPermissions(MapActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 44);
         }
 //this next code needs to be inside a thing that'll link back to MapActivity as it initilizes the search
         //FindPlace
 
         //initialize url
-        String url ="https://maps.googleapis.com/maps/api/place/nearbysearcg/json"+//url
-                "?location=" +MyPosLatNum +"," +MyPosLongNum +//location latitude and longitude
+        String url = "https://maps.googleapis.com/maps/api/place/nearbysearcg/json" +//url
+                "?location=" + MyPosLatNum + "," + MyPosLongNum +//location latitude and longitude
                 "&radius=5000" +//nearby radius
-                "&types= " +findPlace() +//place type
+                "&types= " + findPlace() +//place type
                 "&sensor =true" +//sensor
 //string value for google_map_key still needed
-                "key=" + getResources().getString(R.string.google_api_key);//google map key
+                "key=" + getResources().getString(R.string.google_maps_API_key);//google map key
 
         new PlaceTask().execute(url);
-        // Intent intent = new Intent(ChangeSettings.this, MapActivity.class);
-        // intent.putExtra("extra", position);
-        //startActivity(intent);
+
 
 
     }
+    private String Measurement( )
+    {
+        reference=  FirebaseDatabase.getInstance().getReference("Users").child(FirebaseAuth.getInstance().
+                getCurrentUser().getUid());
+        reference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for(DataSnapshot data: snapshot.getChildren()){
+                    if(data.child("Measurement").exists())
+                    {
+                        reference=  FirebaseDatabase.getInstance().getReference("Users").child(FirebaseAuth.getInstance().
+                                getCurrentUser().getUid()).child("Measurement");
+                        reference.child("Measurement").addChildEventListener(new ChildEventListener() {
+                            @Override
+                            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                                if (snapshot.exists()) {
+                                    measurement = snapshot.getValue(String.class);
+
+                                }
+                            }
+
+                            @Override
+                            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                            }
+
+                            @Override
+                            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+                            }
+
+                            @Override
+                            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+
+
+                        });
+
+                    }else{
+                        measurement = "kilometers";
+
+                    }
+
+                    }
+                }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
+
+        return measurement;
+
+    }
+
     private String findPlace()
     {
+       // String place;
+        //String place_position = getIntent().getStringExtra("place positions");
 
  //THis path might be a little off
+        reference=  FirebaseDatabase.getInstance().getReference("Users").child(FirebaseAuth.getInstance().
+                getCurrentUser().getUid()).child("Places");
+                reference.child("Places").addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                        if(snapshot.exists())
+                        {
+                              place = snapshot.getValue(String.class);
 
-        reference = FirebaseDatabase.getInstance().getReference("Places");
+                        }
+                    }
+
+                    @Override
+                    public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                    }
+
+                    @Override
+                    public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+
 //this might be wrong I think It gets the [0] number not the value
-        String place = String.valueOf(FirebaseDatabase.getInstance().getReference("Places"));
-        reference.child(place).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+
+        reference.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
                 if(task.isSuccessful())
@@ -597,7 +697,7 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
                 .appendQueryParameter("mode", "driving")
                 .appendQueryParameter("key", getString(R.string.google_api_key))
                 .appendQueryParameter("duration","minutes")
-                .appendQueryParameter("distance","kilometers")
+                .appendQueryParameter("distance",Measurement())
                 .toString();
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
             @Override
