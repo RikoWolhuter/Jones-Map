@@ -211,7 +211,7 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
                 "&types= " +findPlace() +//place type
                 "&sensor =true" +//sensor
 //string value for google_map_key still needed
-                "key=" + getResources().getString(R.string.google_map_key);//google map key
+                "key=" + getResources().getString(R.string.google_api_key);//google map key
 
         new PlaceTask().execute(url);
         // Intent intent = new Intent(ChangeSettings.this, MapActivity.class);
