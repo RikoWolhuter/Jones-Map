@@ -107,7 +107,7 @@
                     />
 
                 <EditText
-                    android:id="@+id/landmarkinput"
+                    android:id="@+id/landamrkInput"
                     android:layout_width="700px"
                     android:layout_height="wrap_content"
                     android:ems="10"
