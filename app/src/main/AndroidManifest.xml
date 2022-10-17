@@ -26,6 +26,7 @@
             android:name=".LandMarksActivity"
             android:exported="false" />
         <activity
+
             android:name=".MainActivity"
             android:exported="false" />
 
@@ -48,7 +49,9 @@
         <activity android:name=".MapActivity" />
         <activity
             android:name=".Login"
-            android:exported="true">
+
+            android:exported="true"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
