@@ -111,10 +111,10 @@
                     android:layout_width="700px"
                     android:layout_height="wrap_content"
                     android:ems="10"
-                    android:hint="true"
+
                     android:inputType="textPersonName"
                     android:minHeight="48dp"
-                    android:text="Add a Name /Location"
+                    android:hint="Add a Name /Location"
                     android:textColor="#000000" />
                 <Space
                     android:layout_width="match_parent"
