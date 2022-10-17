@@ -1,5 +1,5 @@
 package com.example.jonesmap;
-import android.*;
+
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
@@ -12,7 +12,26 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
+import android.widget.AutoCompleteTextView;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.fragment.app.FragmentActivity;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -22,28 +41,6 @@ import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.google.android.gms.maps.OnMapReadyCallback;
-
-import android.util.Log;
-import android.view.KeyEvent;
-import android.view.View;
-import android.view.WindowManager;
-import android.view.inputmethod.EditorInfo;
-import android.widget.AdapterView;
-import android.widget.AutoCompleteTextView;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentActivity;
-
 import com.example.jonesmap.models.PlaceInfo;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
@@ -68,32 +65,44 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.common.base.MoreObjects;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.maps.GeoApiContext;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import android.view.LayoutInflater;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
 import com.google.maps.model.DirectionsResult;
 
 import org.chromium.base.Callback;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by User on 10/2/2017.
  */
 
-public class MapActivity extends AppCompatActivity implements OnMapReadyCallback,
-        GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnInfoWindowClickListener{
-
-
-
-
+public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity implements OnMapReadyCallback,
+        GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnInfoWindowClickListener {
 
 
     @Override
@@ -133,6 +142,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         //direction();
     }
 
+
     private static final String TAG = "MapActivity";
 
     private static final String FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
@@ -146,6 +156,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private static String MyPosLong = "";
     private static double MyPosLatNum = 0;
     private static double MyPosLongNum = 0;
+    String place;
+    String measurement;
 
     //widgets
     private AutoCompleteTextView mSearchText;
@@ -159,8 +171,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private GoogleApiClient mGoogleApiClient;
     private PlaceInfo mPlace;
     private Marker mMarker;
+    SupportMapFragment supportMapFragment;
     private GeoApiContext mGeoApiContext = null;
-    private GoogleMap mGoogleMap;
+    private DatabaseReference reference;
+
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -168,15 +183,33 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_map);
         mSearchText = (AutoCompleteTextView) findViewById(R.id.input_search);
         mGps = (ImageView) findViewById(R.id.ic_gps);
-        mInfo = (ImageView) findViewById( R.id.place_info);
+        mInfo = (ImageView) findViewById(R.id.place_info);
         mPlacePicker = (ImageView) findViewById(R.id.place_picker);
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         getLocationPermission();
+/*
+        if (ActivityCompat.checkSelfPermission(MapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            getCurrentLocation();
+        }
+        */
 
+       // getDeviceLocation();
 
+        //initialize url
+       /* String url = "https://maps.googleapis.com/maps/api/place/nearbysearcg/json" +//url
+                "?location=" + MyPosLatNum + "," + MyPosLongNum +//location latitude and longitude
+                "&radius=5000" +//nearby radius
+                "&types= " + "church" +//place type
+                "&sensor =true" +//sensor
+
+                "key=" + getResources().getString(R.string.google_maps_API_key);//google map key
+
+        new PlaceTask().execute(url);*/
+
+        //getCurrentLocation();
 
     }
-
     private void init(){
         Log.d(TAG, "init: initializing");
 
@@ -224,7 +257,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 Log.d(TAG, "onClick: clicked place info");
                 try{
                     if(mMarker.isInfoWindowShown()){
-                       mMarker.hideInfoWindow();
+                        mMarker.hideInfoWindow();
                     }else{
                         Log.d(TAG, "onClick: place info: " + mPlace.toString());
                         mMarker.showInfoWindow();
@@ -253,6 +286,197 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         hideSoftKeyboard();
     }
+
+    private void initMap(){
+        Log.d(TAG, "initMap: initializing map");
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
+
+
+    }
+
+    private void getCurrentLocation() {
+        //Initialize task Location
+        if (ActivityCompat.checkSelfPermission(MapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) ;
+        {
+           // supportMapFragment.getMapAsync(this);
+            Task<Location> task = mFusedLocationProviderClient.getLastLocation();
+
+            task.addOnSuccessListener(new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    if(location!= null){
+                        //get current latitude
+                        MyPosLatNum = location.getLatitude();
+
+
+                        MyPosLongNum = location.getLongitude();
+
+                        //Sync map
+                        supportMapFragment.getMapAsync(new OnMapReadyCallback() {
+                            @Override
+                            public void onMapReady(@NonNull GoogleMap googleMap) {
+                                //when map is ready
+                                mMap =googleMap;
+
+                                //googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+
+                                // Toast.makeText(getApplicationContext(),"latitude"+ MyPosLatNum, Toast.LENGTH_LONG).show();
+
+
+                                //Zoom current location on map
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                                        new LatLng(MyPosLatNum,MyPosLongNum),10
+
+
+                                ));
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+
+    }
+    private String Measurement( )
+    {
+        reference=  FirebaseDatabase.getInstance().getReference("Users").child(FirebaseAuth.getInstance().
+                getCurrentUser().getUid());
+        reference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for(DataSnapshot data: snapshot.getChildren())
+                {
+                    if(data.child("Measurement").exists())
+                    {
+                        reference=  FirebaseDatabase.getInstance().getReference("Users").child(FirebaseAuth.getInstance().
+                                getCurrentUser().getUid()).child("Measurement");
+                        reference.child("Measurement").addChildEventListener(new ChildEventListener()
+                        {
+                            @Override
+                            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName)
+                            {
+                                if (snapshot.exists())
+                                {
+                                    measurement = snapshot.getValue(String.class);
+                                }
+                            }
+                            @Override
+                            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                            }
+                            @Override
+                            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+                            }
+                            @Override
+                            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                            }
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
+
+                    }else
+                    {
+                        measurement = "kilometers";
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+            }
+        });
+        return measurement;
+    }
+
+    private String findPlace()
+    {
+        reference=  FirebaseDatabase.getInstance().getReference("Users").
+                child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Places");
+        reference.child("Places").addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                        if(snapshot.exists())
+                        {
+                              place = snapshot.getValue(String.class);
+
+                        }
+                    }
+                    @Override
+                    public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                    }
+
+                    @Override
+                    public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+
+        reference.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if(task.isSuccessful())
+                {
+                    Toast.makeText(getApplicationContext(),"Place able to read successfully"+ place, Toast.LENGTH_LONG).show();
+                }
+                else
+                {
+                    Toast.makeText(getApplicationContext(),"Failed to read place", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+        return place;
+    }
+
+    private String downloadUrl(String string) throws IOException{
+        //Initialize url
+        URL url= new URL(string);
+        //Initialize connection
+        HttpURLConnection connection =(HttpURLConnection) url.openConnection();
+        //Connect connection
+        connection.connect();
+        //Initialize inputstream
+        InputStream stream= connection.getInputStream();
+        //Initialize buffer reader
+        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+        //Initialize string builder
+        StringBuilder builder = new StringBuilder();
+        //Initialize string variable
+        String line = "";
+        //Use while loop
+        while ((line = reader.readLine()) != null) {
+            //append line
+            builder.append(line);
+        }
+        //get append data
+        String data = builder.toString();
+        //Close reader
+        reader.close();
+        //return data
+        return data;
+    }
+
+    //to show nearby of places
 
 
 
@@ -382,14 +606,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
 
 
-    private void initMap(){
-        Log.d(TAG, "initMap: initializing map");
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
 
-        mapFragment.getMapAsync(MapActivity.this);
-
-
-    }
 
     private void getLocationPermission(){
         Log.d(TAG, "getLocationPermission: getting location permissions");
@@ -422,7 +639,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         switch (requestCode) {
             case LOCATION_PERMISSION_REQUEST_CODE: {
-                if (grantResults.length > 0) {
+                if (grantResults.length > 0||requestCode==44) {
                     for (int i = 0; i < grantResults.length; i++) {
                         if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                             mLocationPermissionsGranted = false;
@@ -434,6 +651,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     mLocationPermissionsGranted = true;
                     //initialize our map
                     initMap();
+                    getDeviceLocation();
                 }
             }
         }
@@ -634,4 +852,77 @@ private ResultCallback<PlaceBuffer> mUpdatePlaceDetailsCallback = new ResultCall
 
 };
 
-}
+    private class PlaceTask extends AsyncTask<String,Integer,String>
+    {
+
+        @Override
+        protected String doInBackground (String...strings) {
+                String data= null;
+                try{
+                    //Initialize data
+                    data =downloadUrl(strings[0]);
+                }catch(IOException e){
+                    e.printStackTrace();
+                }
+
+                return data;
+            }
+
+
+
+
+        @Override
+        protected void onPostExecute(String s) {
+                new ParserTask().execute(s);
+
+        }
+
+        private class ParserTask extends AsyncTask<String, Integer, List<HashMap<String,String>>> {
+            @Override
+            protected List<HashMap<String,String>> doInBackground(@NonNull String...strings){
+
+                    //Create json parser class
+                    JsonParser jsonParser = new JsonParser();
+                    //Initialize hash map list
+                    List<HashMap<String, String>> mapList = null;
+                    JSONObject object = null;
+                    try{
+                        //IInitialise json object
+                        object =new JSONObject(strings[0]);
+                        //Parse json object
+                        mapList = jsonParser.parseResult(object);
+                    }catch(JSONException e){
+                        e.printStackTrace();
+                    }
+                    return mapList;
+                }
+
+            @Override
+            protected void onPostExecute(@NonNull List<HashMap<String, String>> hashMaps) {
+                    //clear map
+                mMap.clear();
+                    for(int i=0; i<hashMaps.size(); i++){
+                        //Initialize hashmap
+                        HashMap<String, String> hashMapList =  hashMaps.get(i);
+                        //get latitude
+                        double lat = Double.parseDouble(hashMapList.get("lat"));
+                        double lng = Double.parseDouble(hashMapList.get("lng"));
+                        //getname
+                        String name = hashMapList.get("name");
+                        //concat latitude and longitude
+                        LatLng latLng = new LatLng(lat, lng);
+                        //intialise marker options
+                        MarkerOptions options = new MarkerOptions();
+                        //set position
+                        options.position(latLng);
+
+                        //set title
+                        options.title(name);
+                        //add marker on map
+                        mMap.addMarker(options);
+                    }
+                }
+            }
+        }
+    }
+

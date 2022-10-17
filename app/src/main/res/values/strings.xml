@@ -4,11 +4,13 @@
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
     <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
     <string-array name="Measurements">
+        <item>--Please select a measurement</item>
         <item>METRIC</item>
         <item>IMPERIAL</item>
     </string-array>
 
     <string-array name="Landmark">
+        <item>--Please select Landmark</item>
         <item>RESTAURANT</item>
         <item>NATURE RESERVE</item>
         <item>BEACH</item>

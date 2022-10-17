@@ -46,6 +46,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:orientation="vertical">
+
                 <Space
                     android:layout_width="match_parent"
                     android:layout_height="20dp"
@@ -134,6 +135,12 @@
                         android:paddingRight="0px"
                         android:spinnerMode="dropdown" />
                 </LinearLayout>
+
+                <Button
+                    android:id="@+id/btn_done"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Done" />
 
 
             </LinearLayout>
