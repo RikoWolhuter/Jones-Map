@@ -107,7 +107,7 @@
                     />
 
                 <EditText
-                    android:id="@+id/editTextTextPersonName2"
+                    android:id="@+id/landmarkinput"
                     android:layout_width="700px"
                     android:layout_height="wrap_content"
                     android:ems="10"
@@ -127,7 +127,7 @@
                     android:layout_weight="1"
                     />
                 <Button
-                    android:id="@+id/register"
+                    android:id="@+id/AddLandmark"
                     android:layout_width="144dp"
                     android:layout_height="63dp"
                     android:backgroundTint="#0B0A0A"

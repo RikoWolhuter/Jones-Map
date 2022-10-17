@@ -1,6 +1,7 @@
 package com.example.jonesmap;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -12,6 +13,18 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.ListView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -26,7 +39,10 @@ public class LandMarksActivity extends AppCompatActivity implements NavigationVi
 
     private static final String TAG = "landMarksActivity";
     private static final int ERROR_DIALOG_REQUEST = 9001;
+    private ListView lstvLandmarks;
+    private List<String> LandmarksList;
 
+    private ImageView imageView2;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +61,47 @@ public class LandMarksActivity extends AppCompatActivity implements NavigationVi
         navigationView = findViewById(R.id.nav_view);
         navigationView.bringToFront();
         navigationView.setNavigationItemSelectedListener(this);
+        imageView2 = findViewById(R.id.imageView2);
+
+        imageView2.setOnClickListener(this);
+
+        LandmarksList = new ArrayList<>();
+        lstvLandmarks = (ListView) findViewById(R.id.LandmarksList);
+
+
+        final ArrayAdapter<String> collectionAdapter = new ArrayAdapter<String>(LandMarksActivity.this, R.layout.activity_land_marks,R.id.LandmarksList);
+        lstvLandmarks.setAdapter(collectionAdapter);
+
+
+        FirebaseDatabase.getInstance().getReference("Users")
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("StringCollections").addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                        String value = snapshot.getValue(String.class);
+                        LandmarksList.add(value);
+                        collectionAdapter.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                        collectionAdapter.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
     }
 
     @Override
@@ -60,7 +117,7 @@ public class LandMarksActivity extends AppCompatActivity implements NavigationVi
                 IntentHelper.openIntent(this, LandMarksActivity.class);
                 break;
             case R.id.nav_settings:
-                IntentHelper.openIntent(this, SettingsActivity.class);
+                IntentHelper.openIntent(this, ChangeSettings.class);
                 break;
             case R.id.nav_profile:
                 IntentHelper.openIntent(this, ProfileActivity.class);
@@ -71,9 +128,19 @@ public class LandMarksActivity extends AppCompatActivity implements NavigationVi
         //returning true marks the item as selected
         return true;
     }
+    public  void onClick(View v)
+    {
+        switch (v.getId()) {
 
+            case R.id.imageView2:
+                IntentHelper.openIntent(this, AddLandMarksActivity.class);
+                break;
+        }
+
+    }
     @Override
     public void onBackPressed(){
+
         //if the drawer is open, close it
         if(drawerLayout.isDrawerOpen(GravityCompat.START)){
             drawerLayout.closeDrawer(GravityCompat.START);
