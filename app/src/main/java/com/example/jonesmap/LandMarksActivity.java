@@ -62,8 +62,9 @@ public class LandMarksActivity extends AppCompatActivity implements NavigationVi
         navigationView.bringToFront();
         navigationView.setNavigationItemSelectedListener(this);
         imageView2 = findViewById(R.id.imageView2);
+        imageView2.setOnClickListener(this::onClick);
 
-        imageView2.setOnClickListener(this);
+
 
         LandmarksList = new ArrayList<>();
         lstvLandmarks = (ListView) findViewById(R.id.LandmarksList);

@@ -39,6 +39,7 @@ public class AddLandMarksActivity extends AppCompatActivity implements Navigatio
 
     private EditText Landmark;
     public String tempLandmark;
+   // private Button AddLandmark;
 
 
 
@@ -48,7 +49,7 @@ public class AddLandMarksActivity extends AppCompatActivity implements Navigatio
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_land_marks);
+        setContentView(R.layout.activity_add_land_marks);
 
         toolbar = findViewById(R.id.nav_toolbar);
         setSupportActionBar(toolbar);
@@ -64,10 +65,10 @@ public class AddLandMarksActivity extends AppCompatActivity implements Navigatio
         navigationView.bringToFront();
         navigationView.setNavigationItemSelectedListener(this);
         mAuth = FirebaseAuth.getInstance();
-        Landmark =(EditText)findViewById(R.id.landmarkinput) ;
+         Landmark =(EditText)findViewById(R.id.landamrkInput) ;
 
 
-        Button AddLandmark =  findViewById(R.id.AddLandmark);
+         Button AddLandmark =  findViewById(R.id.AddLandmark);
 
         AddLandmark.setOnClickListener(new View.OnClickListener() {
             @Override
