@@ -18,9 +18,13 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
@@ -42,11 +46,20 @@ public class LandMarksActivity extends AppCompatActivity implements NavigationVi
     private ListView lstvLandmarks;
     private List<String> LandmarksList;
 
+    private FirebaseUser user;
+    private String userID;
+    private FirebaseDatabase database = FirebaseDatabase.getInstance();
+
+    private DatabaseReference registerUsers = database.getReference("JonesMap");
+    private FirebaseAuth mAuth;
+
     private ImageView imageView2;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_land_marks);
+
+        mAuth = FirebaseAuth.getInstance();
 
         toolbar = findViewById(R.id.nav_toolbar);
         setSupportActionBar(toolbar);
@@ -70,22 +83,22 @@ public class LandMarksActivity extends AppCompatActivity implements NavigationVi
         lstvLandmarks = (ListView) findViewById(R.id.LandmarksList);
 
 
-        final ArrayAdapter<String> collectionAdapter = new ArrayAdapter<String>(LandMarksActivity.this, R.layout.activity_land_marks,R.id.LandmarksList);
-        lstvLandmarks.setAdapter(collectionAdapter);
+        final ArrayAdapter<String> landmarkAdapter = new ArrayAdapter<String>(LandMarksActivity.this, R.layout.custom_list,R.id.text,LandmarksList);
+        lstvLandmarks.setAdapter(landmarkAdapter);
 
 
         FirebaseDatabase.getInstance().getReference("Users")
-                .child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("StringCollections").addChildEventListener(new ChildEventListener() {
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("StringLandmarks").addChildEventListener(new ChildEventListener() {
                     @Override
                     public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
                         String value = snapshot.getValue(String.class);
                         LandmarksList.add(value);
-                        collectionAdapter.notifyDataSetChanged();
+                        landmarkAdapter.notifyDataSetChanged();
                     }
 
                     @Override
                     public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                        collectionAdapter.notifyDataSetChanged();
+                        landmarkAdapter.notifyDataSetChanged();
                     }
 
                     @Override
