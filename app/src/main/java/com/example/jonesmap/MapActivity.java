@@ -109,7 +109,7 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
-
+//WORKS
     @Override
     public void onMapReady(GoogleMap googleMap) {
         String message = "You are using Jones's Map and its running in the background!";
