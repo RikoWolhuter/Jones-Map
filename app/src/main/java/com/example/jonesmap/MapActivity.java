@@ -197,6 +197,7 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
         getLocationPermission();
 
         mAuth = FirebaseAuth.getInstance();
+        Measurement();
 /*
         if (ActivityCompat.checkSelfPermission(MapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -353,62 +354,36 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
 
 
     }
-    private void Measurement()
-    {
-        FirebaseDatabase.getInstance().getReference("Users")
-                .child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Measurements")
-        .addListenerForSingleValueEvent(new ValueEventListener() {
+    private String Measurement() {
+
+
+        FirebaseDatabase.getInstance().getReference("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for(DataSnapshot data: snapshot.getChildren())
-                {
-                    if(data.child("Measurements").exists())
-                    {
-                        reference=  FirebaseDatabase.getInstance().getReference("Users").child(FirebaseAuth.getInstance().
-                                getCurrentUser().getUid()).child("Measurements");
-                        reference.addChildEventListener(new ChildEventListener()
-                        {
-                            @Override
-                            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName)
-                            {
-                                if (snapshot.exists())
-                                {
-                                    measurement = snapshot.getValue(String.class);
-                                    Toast.makeText(getApplicationContext(),measurement,Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                            @Override
-                            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-                            }
-                            @Override
-                            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-                            }
-                            @Override
-                            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-                            }
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) {
-
-                            }
-                        });
-
-                    }else
-                    {
-                        measurement = "kilometers";
-                        Toast.makeText(getApplicationContext(),measurement,Toast.LENGTH_SHORT).show();
-                    }
+                if (snapshot.child("Measurements").exists()) {
+                    measurement = snapshot.child("Measurements").getValue(String.class);
+                   // Toast.makeText(getApplicationContext(), measurement, Toast.LENGTH_SHORT).show();
                 }
+                else
+                {
+                    measurement = "kilometers";
+                    //Toast.makeText(getApplicationContext(), measurement, Toast.LENGTH_SHORT).show();
+                }
+
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+
             }
         });
-
+        return measurement;
     }
+
+
+
+
 
     private String findPlace()
     {
@@ -549,9 +524,6 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
                                     DEFAULT_ZOOM,
                                     "My Location");
 
-
-
-
                         }else{
                             Log.d(TAG, "onComplete: current location is null");
                             Toast.makeText(MapActivity.this, "unable to get current location", Toast.LENGTH_SHORT).show();
@@ -615,10 +587,6 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
         hideSoftKeyboard();
 
     }
-
-
-
-
 
     private void getLocationPermission(){
         Log.d(TAG, "getLocationPermission: getting location permissions");
@@ -690,7 +658,7 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
                 .appendQueryParameter("mode", "driving")
                 .appendQueryParameter("key", getString(R.string.google_api_key))
                 .appendQueryParameter("duration","minutes")
-                .appendQueryParameter("distance","kilometers")
+                .appendQueryParameter("distance",Measurement())
                 .toString();
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
             @Override
@@ -725,6 +693,7 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
                             polylineOptions.width(10);
                             polylineOptions.color(ContextCompat.getColor(MapActivity.this, R.color.purple_500));
                             polylineOptions.geodesic(true);
+                            Toast.makeText(MapActivity.this, "Metric used: " + Measurement(), Toast.LENGTH_SHORT).show();
                         }
                         mMap.addPolyline(polylineOptions);
 
