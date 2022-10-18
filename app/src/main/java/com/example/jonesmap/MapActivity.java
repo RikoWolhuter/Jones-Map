@@ -68,6 +68,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -104,12 +105,18 @@ import org.chromium.base.Callback;
 public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnInfoWindowClickListener {
 
+    private FirebaseUser user;
+    private String userID;
+    private FirebaseDatabase database = FirebaseDatabase.getInstance();
+
+    private DatabaseReference registerUsers = database.getReference("JonesMap");
+    private FirebaseAuth mAuth;
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
-
+//WORKS
     @Override
     public void onMapReady(GoogleMap googleMap) {
         String message = "You are using Jones's Map and its running in the background!";
@@ -140,6 +147,7 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
             init();
         }
         //direction();
+        googleMap.setOnInfoWindowClickListener(this);
     }
 
 
@@ -187,6 +195,8 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
         mPlacePicker = (ImageView) findViewById(R.id.place_picker);
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         getLocationPermission();
+
+        mAuth = FirebaseAuth.getInstance();
 /*
         if (ActivityCompat.checkSelfPermission(MapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -343,20 +353,20 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
 
 
     }
-    private String Measurement( )
+    private void Measurement()
     {
-        reference=  FirebaseDatabase.getInstance().getReference("Users").child(FirebaseAuth.getInstance().
-                getCurrentUser().getUid());
-        reference.addListenerForSingleValueEvent(new ValueEventListener() {
+        FirebaseDatabase.getInstance().getReference("Users")
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Measurements")
+        .addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 for(DataSnapshot data: snapshot.getChildren())
                 {
-                    if(data.child("Measurement").exists())
+                    if(data.child("Measurements").exists())
                     {
                         reference=  FirebaseDatabase.getInstance().getReference("Users").child(FirebaseAuth.getInstance().
-                                getCurrentUser().getUid()).child("Measurement");
-                        reference.child("Measurement").addChildEventListener(new ChildEventListener()
+                                getCurrentUser().getUid()).child("Measurements");
+                        reference.addChildEventListener(new ChildEventListener()
                         {
                             @Override
                             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName)
@@ -364,6 +374,7 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
                                 if (snapshot.exists())
                                 {
                                     measurement = snapshot.getValue(String.class);
+                                    Toast.makeText(getApplicationContext(),measurement,Toast.LENGTH_SHORT).show();
                                 }
                             }
                             @Override
@@ -387,6 +398,7 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
                     }else
                     {
                         measurement = "kilometers";
+                        Toast.makeText(getApplicationContext(),measurement,Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -395,7 +407,7 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
             public void onCancelled(@NonNull DatabaseError error) {
             }
         });
-        return measurement;
+
     }
 
     private String findPlace()
@@ -664,6 +676,7 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
 
     private void direction(Marker marker){
 
+
         com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(
                 marker.getPosition().latitude,
                 marker.getPosition().longitude
@@ -727,7 +740,8 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
                                         marker.getPosition().longitude)).build();
                         Point point = new Point();
                         getWindowManager().getDefaultDisplay().getSize(point);
-                        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, point.x, 150, 30));
+                        mMap.animateCamera(CameraUpdateFactory.zoomIn());
+                        Measurement();
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -786,6 +800,7 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
                     .setCancelable(true)
                     .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+
                             direction(marker);
                             dialog.dismiss();
                         }
