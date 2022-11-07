@@ -9,9 +9,11 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.app.Dialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.widget.AdapterView;
 import android.widget.Toast;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -53,11 +55,17 @@ public class LandMarksActivity extends AppCompatActivity implements NavigationVi
     private DatabaseReference registerUsers = database.getReference("JonesMap");
     private FirebaseAuth mAuth;
 
+    Intent intentItem;
+
     private ImageView imageView2;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_land_marks);
+
+
+
+        intentItem = new Intent(this, MapActivity.class);
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -116,6 +124,8 @@ public class LandMarksActivity extends AppCompatActivity implements NavigationVi
 
                     }
                 });
+
+        lstvLandmarks.setOnItemClickListener(listClick);
     }
 
     @Override
@@ -183,4 +193,19 @@ public class LandMarksActivity extends AppCompatActivity implements NavigationVi
         }
         return false;
     }
+
+    private AdapterView.OnItemClickListener listClick = new AdapterView.OnItemClickListener() {
+
+        public void onItemClick(AdapterView parent, View view, int i, long l) {
+            String itemValue  = ((String) lstvLandmarks.getItemAtPosition(i)).trim();
+
+            intentItem.putExtra("Selected Landmark", itemValue);
+
+            Intent intent = new Intent(LandMarksActivity.this,MapActivity.class);
+            startActivity(intentItem);
+
+        }
+    };
+
+
 }

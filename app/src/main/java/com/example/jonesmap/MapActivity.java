@@ -112,6 +112,9 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
     private DatabaseReference registerUsers = database.getReference("JonesMap");
     private FirebaseAuth mAuth;
 
+    public String tempLandmark;
+    public String searchString;
+
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
@@ -189,7 +192,15 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
+
+        Intent intent = getIntent();
+        String str = intent.getStringExtra("Selected Landmark");
+
+        //Toast.makeText(getApplicationContext(),str,Toast.LENGTH_SHORT).show();
+
         mSearchText = (AutoCompleteTextView) findViewById(R.id.input_search);
+
+        mSearchText.setText(str);
         mGps = (ImageView) findViewById(R.id.ic_gps);
         mInfo = (ImageView) findViewById(R.id.place_info);
         mPlacePicker = (ImageView) findViewById(R.id.place_picker);
@@ -483,7 +494,7 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
     private void geoLocate(){
         Log.d(TAG, "geoLocate: geolocating");
 
-        String searchString = mSearchText.getText().toString();
+        searchString = mSearchText.getText().toString();
 
         Geocoder geocoder = new Geocoder(MapActivity.this);
         List<Address> list = new ArrayList<>();
@@ -656,7 +667,7 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
                 .appendQueryParameter("destination", destination.toString())
                 .appendQueryParameter("origin", (MyPosLat+", "+MyPosLong))
                 .appendQueryParameter("mode", "driving")
-                .appendQueryParameter("key", getString(R.string.google_api_key))
+                .appendQueryParameter("key", getString(R.string.google_maps_API_key))
                 .appendQueryParameter("duration","minutes")
                 .appendQueryParameter("distance",Measurement())
                 .toString();
@@ -762,7 +773,54 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
 
     @Override
     public void onInfoWindowClick(final Marker marker) {
+        final AlertDialog.Builder builder1 = new AlertDialog.Builder(MapActivity.this);
+        builder1.setMessage("Do you want to save location to saved landmarks?")
+                .setCancelable(true)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        tempLandmark = searchString;
+                        String StringForLandmark = searchString;
 
+
+                        FirebaseDatabase.getInstance().getReference("Users")
+                                .child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("StringLandmarks").child(tempLandmark)
+                                .setValue(StringForLandmark).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if(task.isSuccessful()){
+
+                                        }
+                                        else{
+                                            Toast.makeText(MapActivity.this, "Landmark has not been added", Toast.LENGTH_LONG).show();
+                                        }
+                                    }
+                                });
+
+
+                        FirebaseDatabase.getInstance().getReference("Users")
+                                .child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Landmarks").child(tempLandmark).child("Name")
+                                .setValue(tempLandmark).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if(task.isSuccessful()){
+
+                                        }
+                                        else{
+                                            Toast.makeText(MapActivity.this, "Name has not been added", Toast.LENGTH_LONG).show();
+                                        }
+                                    }
+                                });
+
+                        dialog.dismiss();
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+                    }
+                });
+        final AlertDialog alert1 = builder1.create();
+        alert1.show();
 
             final AlertDialog.Builder builder = new AlertDialog.Builder(MapActivity.this);
             builder.setMessage("Determine route to location?")
@@ -781,6 +839,8 @@ public class MapActivity<ActivityReadDataBinding> extends AppCompatActivity impl
                     });
             final AlertDialog alert = builder.create();
             alert.show();
+
+
         }
 
 
