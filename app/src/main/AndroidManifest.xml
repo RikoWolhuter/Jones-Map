@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.RikoKarmenJeanMoe.jonesmap">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -14,20 +15,20 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.JonesMap">
         <activity
-            android:name=".AddLandMarksActivity"
+            android:name="com.RikoKarmenJeanMoe.jonesmap.AddLandMarksActivity"
             android:exported="false" />
         <activity
-            android:name=".ProfileActivity"
+            android:name="com.RikoKarmenJeanMoe.jonesmap.ProfileActivity"
             android:exported="false" />
         <activity
-            android:name=".SettingsActivity"
+            android:name="com.RikoKarmenJeanMoe.jonesmap.SettingsActivity"
             android:exported="false" />
         <activity
-            android:name=".LandMarksActivity"
+            android:name="com.RikoKarmenJeanMoe.jonesmap.LandMarksActivity"
             android:exported="false" />
         <activity
 
-            android:name=".MainActivity"
+            android:name="com.RikoKarmenJeanMoe.jonesmap.MainActivity"
             android:exported="false" />
 
         <meta-data
@@ -38,17 +39,17 @@
             android:value="@integer/google_play_services_version" />
 
         <activity
-            android:name=".ForgotPassword"
+            android:name="com.RikoKarmenJeanMoe.jonesmap.ForgotPassword"
             android:exported="false" />
         <activity
-            android:name=".Registration"
+            android:name="com.RikoKarmenJeanMoe.jonesmap.Registration"
             android:exported="false" />
         <activity
-            android:name=".ChangeSettings"
+            android:name="com.RikoKarmenJeanMoe.jonesmap.ChangeSettings"
             android:exported="false" />
-        <activity android:name=".MapActivity" />
+        <activity android:name="com.RikoKarmenJeanMoe.jonesmap.MapActivity" />
         <activity
-            android:name=".Login"
+            android:name="com.RikoKarmenJeanMoe.jonesmap.Login"
 
             android:exported="true"
             >

@@ -1,10 +1,40 @@
 {
   "project_info": {
     "project_number": "330522955248",
+    "firebase_url": "https://jonesmap-9e180-default-rtdb.firebaseio.com",
     "project_id": "jonesmap-9e180",
     "storage_bucket": "jonesmap-9e180.appspot.com"
   },
   "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:330522955248:android:baa9313507f33bac786135",
+        "android_client_info": {
+          "package_name": "com.RikoKarmenJeanMoe.jonesmap"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "330522955248-irroa9a19pkq0707ddk8dfsrssu1m5km.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCxX-eD_LpYf-C2ucrjHoTZGaAzEsZxIL4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "330522955248-irroa9a19pkq0707ddk8dfsrssu1m5km.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
     {
       "client_info": {
         "mobilesdk_app_id": "1:330522955248:android:35fc5ab3db64398d786135",
